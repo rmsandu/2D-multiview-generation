@@ -53,6 +53,8 @@ models/
 .cache/*
 *.safetensors
 *.cfg
+.gemini_cache/
+# Hugging Face cache    
 
 # Large model weights (will re-download)
 ~/.cache/huggingface/
