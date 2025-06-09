@@ -1,0 +1,106 @@
+# ─────────────────────────────
+#  Python & virtual-env stuff
+# ─────────────────────────────
+__pycache__/
+*.py[cod]
+*.so
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+develop-eggs/
+pip-wheel-metadata/
+*.manifest
+*.spec
+
+# Virtual-envs
+.venv/
+env/
+venv/
+ENV/
+.idea/
+
+# Poetry / pipenv
+.poetry/
+Pipfile.lock
+poetry.lock
+
+# Jupyter notebooks
+.ipynb_checkpoints/
+
+# PyTest / coverage
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+
+# Logs & runtime
+*.log
+logs/
+wandb/
+mlruns/
+
+
+# ─────────────────────────────
+#  Data & model artefacts
+# ─────────────────────────────
+# Local bucket mounts or scratch
+data/
+outputs/
+models/ 
+.cache/
+.cache/*
+*.safetensors
+*.cfg
+
+# Large model weights (will re-download)
+~/.cache/huggingface/
+*.ckpt
+*.pt
+*.bin
+
+# Video / image outputs created by runs
+*.mp4
+*.mov
+*.png
+*.jpg
+*.jpeg
+*.webm
+
+# ─────────────────────────────
+#  Environment / secrets
+# ─────────────────────────────
+.env
+.env.*
+*.key
+*.pem
+
+# ─────────────────────────────
+#  Editors / OS
+# ─────────────────────────────
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# ─────────────────────────────
+#  Prefect/Airflow metadata
+# ─────────────────────────────
+*.prefect
+.airflow/
+
+# ─────────────────────────────
+#  Make & build artefacts
+# ─────────────────────────────
+*.o
+*.a
+*.out
+
+# ─────────────────────────────
+#  End of file
+# ─────────────────────────────

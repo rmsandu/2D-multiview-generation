@@ -1,0 +1,45 @@
+# ------------------------------------------------------------------
+# Wheels built for CUDA 12.1 (cu121) + Python 3.11
+# ------------------------------------------------------------------
+--extra-index-url https://download.pytorch.org/whl/cu121
+
+torch==2.3.0+cu121
+torchvision
+torchaudio     # ← all three ship cp311-manylinux wheels
+                            #    linked against CUDA 12.1 runtimes
+# ------------------------------------------------------------------
+# Core diffusion / LoRA stack
+# ------------------------------------------------------------------
+diffusers==0.28.0           # needs xformers ≥ 0.26 for flash-attn
+transformers==4.40.0
+peft==0.10.0
+bitsandbytes==0.43.1        # cp311 wheel, kernels compiled with CUDA 11.8
+accelerate==0.28.0
+safetensors==0.4.3
+
+# ------------------------------------------------------------------
+# Speed-ups
+# ------------------------------------------------------------------
+xformers==0.0.26.post1      # cp311-cu118 wheel → satisfies diffusers
+triton==2.3.0               # OpenAI Triton, all-Python 3.11 wheels
+
+# ------------------------------------------------------------------
+# Utilities & data
+# ------------------------------------------------------------------
+tqdm>=4.66.2
+einops==0.7.0
+pillow>=10.3.0
+opencv-python-headless>=4.9.0.80
+huggingface-hub>=0.23.0
+wandb>=0.16.6               # optional experiment logging
+
+# ------------------------------------------------------------------
+# Dev / quality
+# ------------------------------------------------------------------
+black
+ruff
+pytest
+pytest-httpx               # mock external APIs
+pre-commit
+detect-secrets
+
