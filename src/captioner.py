@@ -1,4 +1,5 @@
-# common imports
+import sys
+
 from dotenv import load_dotenv
 from pathlib import Path
 import random, base64, json, io, os
@@ -6,7 +7,6 @@ from PIL import Image
 from google import genai
 from google.genai import types
 from tqdm import tqdm
-from dataset_builder import OBJECTS_DIR, choose_four, find_image_dirs
 
 
 load_dotenv()
@@ -14,39 +14,23 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 client = genai.Client(api_key=GOOGLE_API_KEY)
 
 MODEL_NAME = "gemini-2.0-flash"
-CATEGORY_TAGS = "mvimgnet_category.txt"
-ANGLE_TAGS = ["front", "side", "back", "top"]
 CACHE_DIR = Path(".gemini_cache")
 CACHE_DIR.mkdir(exist_ok=True)
 
-# """ """ prompt = (
-#     f"You are describing a {angle}-view photograph of a single "
-#     f"{category} object for multi-view dataset curation. "
-#     f"Respond with one short description that "
-#     f"mentions colour/shape and the angle."
-#     "Here is an example of answer: [FOUR-VIEWS] This set of four images show four different angles of the same DSLR camera; "
-#     "[IMAGE1] front view (0 degrees) of the same camera, black body with silver lens mount;"
-#     "[IMAGE2] side view (45 degrees) of the camera showing hand-grip and shutter button;"
-#     "[IMAGE3] side view (90 degrees) of the camera revealing LCD screen and dials;"
-#     "[IMAGE4] top view (above) of the camera highlighting hot-shoe and mode dial."
-# )
-#  """
 
-
-def _caption_one(img_pil, angle, category):
+def _caption_one(img_pil, category):
     prompt = (
-        f"You are describing a {angle}-view photograph of a single "
-        f"{category} object for multi-view dataset curation. "
-        f"Respond with one short description that mentions colour/shape and the viewing angle."
-        f"Example of a good response: "
-        f"the front view of a black DSLR camera with a silver lens mount"
+        f"You are describing only a single "
+        f"{category} object for multi-view dataset curation. Focus only on the object described by the category name {category}. "
+        f"Respond with a comprehensive detailed description of the object using ONLY the name from {category}, including the viewing angle of the camera, ideally in degrees."
+        "EXAMPLE ANSWER if category is backpack: This photo shows a 0-degree angle front-view shot of a blue of backpack with a front pocket. "
     )
     resp = client.models.generate_content(
         model=MODEL_NAME,
         contents=[img_pil, prompt],
         config=types.GenerateContentConfig(
-            max_output_tokens=50,  # limit to 50 tokens
-            temperature=0.2,  # low temperature for consistency
+            max_output_tokens=100,  # limit to 50 tokens
+            temperature=0.4,  # low temperature for consistency
         ),
     )
     print(resp.text)
@@ -64,13 +48,12 @@ def caption_four_views(view_paths, category) -> tuple[list[str], str]:
         clauses = json.loads(cache_file.read_text())
     else:
         clauses = [
-            _caption_one(Image.open(p).convert("RGB"), ang, category)
-            for p, ang in zip(view_paths, ANGLE_TAGS)
+            _caption_one(Image.open(p).convert("RGB"), category) for p in view_paths
         ]
         cache_file.write_text(json.dumps(clauses), encoding="utf-8")
 
     joint = (
-        "[FOUR-VIEWS] This  set of four image shows different viewing angles of the same "
+        "[FOUR-VIEWS] This set of four images shows different viewing angles of the same "
         f"{category}; "
         + "; ".join(f"[IMAGE{i+1}] {c}" for i, c in enumerate(clauses))
         + "."
@@ -95,29 +78,8 @@ def make_composite(img_paths, target_h=512):
 
 
 if __name__ == "__main__":
-
-    # grab FIRST object
-    first_dir = find_image_dirs(OBJECTS_DIR)[0]
-    obj_id = first_dir.parent.name
-    # load category from file if available
-    category_file = OBJECTS_DIR / CATEGORY_TAGS
-    if category_file.exists():
-        id2cat = dict(
-            line.strip().split(maxsplit=1)
-            for line in category_file.read_text().splitlines()
-        )
-        category = id2cat.get(obj_id, "object")
-    else:
-        category = "object"
-
-    views = choose_four(first_dir.glob("*.jpg"))
-
-    clauses, joint_caption = caption_four_views(views, category)
-    print("Generated clauses:", clauses)
-    print("\nJoint caption:\n", joint_caption)
-
-    composite = make_composite(views, target_h=512)
-    out_file = Path(f"quick_test_{obj_id}.png")
-    composite.save(out_file)
-    print(f"\nSaved composite strip to {out_file.resolve()}")
-    composite.show()  # opens preview window
+    print("Captioner module loaded. Use caption_four_views() to caption images.")
+    if len(sys.argv) > 1:
+        print("Usage: python captioner.py")
+        print("This module is not meant to be run directly. Use it as a library.")
+        sys.exit(1)

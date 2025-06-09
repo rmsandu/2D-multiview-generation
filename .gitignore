@@ -69,6 +69,7 @@ models/
 *.jpg
 *.jpeg
 *.webm
+training/
 
 # ─────────────────────────────
 #  Environment / secrets
