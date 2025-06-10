@@ -27,7 +27,7 @@ def _caption_one(img_pil, category):
     )
     resp = client.models.generate_content(
         model=MODEL_NAME,
-        contents=[img_pil, prompt],s
+        contents=[img_pil, prompt],
         config=types.GenerateContentConfig(
             max_output_tokens=100,  # limit to 50 tokens
             temperature=0.4,  # low temperature for consistency
@@ -72,23 +72,30 @@ def caption_four_views(
     return clauses, joint
 
 
-def make_composite(img_paths, target_h=512):
+def generate_caption_composite_grid(composite_img_pil, category):
     """
-    Create a horizontal strip composite image from a list of image paths.
-    Each image is resized to the target height while maintaining aspect ratio."""
-    imgs = [Image.open(p).convert("RGB") for p in img_paths]
-    scale = target_h / imgs[0].height
-    imgs = [
-        im.resize((int(im.width * scale), target_h), Image.Resampling.LANCZOS)
-        for im in imgs
-    ]
-    W = sum(im.width for im in imgs)
-    strip = Image.new("RGB", (W, target_h))
-    x = 0
-    for im in imgs:
-        strip.paste(im, (x, 0))
-        x += im.width
-    return strip
+    Generate a caption for a composite image of four views.
+    This function is a placeholder and should be implemented as needed.
+    """
+    prompt = (
+        f"You are an expert data annotator for 3D computer vision."
+        f'Your task is to generate a precise, single-line "joint caption" for a 2x2 grid of images showing different views of the same object.'
+        f"The image I am providing is a 2x2 grid image that represents a different camera angle of the same object. "
+        f"All four views show the same object, which belongs to the category: {category}."
+        f"Your task is to analyze the camera angle of each of the four images in the grid and create a single, continuous line of text that describes the object and the specific viewpoint in each grid position."
+        f"You must follow the strict formatting rules for the caption: [FOUR-VIEWS]  This set of four images show SHORT DESCRIPTION of object {category} in the photo; [TOP-LEFT], [TOP-RIGHT], [BOTTOM-LEFT], and [BOTTOM-RIGHT]"
+        f"EXAMPLE ANSWER: [FOUR-VIEWS] This set of four images image shows different viewing angles of the same blue bag wtih a flower pattern; [TOP-LEFT] This photo shows a 45-degree angle shot of a blue bag; [TOP-RIGHT] This photo shows high-angle view shot of a blue bag; [BOTTOM-LEFT] This photo shows another side view shot of a blue bag with a dragon on it; [BOTTOM-RIGHT] This photo shows the back view of a blue bag with two straps."
+    )
+
+    resp = client.models.generate_content(
+        model=MODEL_NAME,
+        contents=[composite_img_pil, prompt],
+        config=types.GenerateContentConfig(
+            temperature=0.3,  # low temperature for consistency
+        ),
+    )
+    # print(resp.text)
+    return resp.text.strip().rstrip(".")  # remove trailing period if any
 
 
 if __name__ == "__main__":

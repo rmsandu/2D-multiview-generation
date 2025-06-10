@@ -5,14 +5,19 @@ from tqdm import tqdm
 import traceback
 import pprint
 import sys
-from .captioner import caption_four_views, make_composite
-
+from .captioner import (
+    caption_four_views,
+    generate_caption_composite_grid,
+)
+from .composite_img import make_composite_grid
 
 # --- directory layout ---
 DATA_ROOT = Path("data")
 OBJECTS_DIR = DATA_ROOT / "mvi_32"  # change to mvi_40 if needed
 OUT_DIR = Path("training/composites_4view")
+OUT_DIR_GRID = Path("training/composites_4view_grid")
 OUT_DIR.mkdir(parents=True, exist_ok=True)
+OUT_DIR_GRID.mkdir(parents=True, exist_ok=True)
 
 CATEGORY_FILE = Path(DATA_ROOT / "mvimgnet_category.txt")
 
@@ -62,13 +67,8 @@ def process_one(img_dir, id2cat, cache_dir):
 
     # pprint.pprint(id2cat)
     obj_id = str(img_dir.parent.parent.name)
-    # print(f"Processing object ID: directory {img_dir}")
-    # print(f"Image directory: {img_dir.parent.name}")
-    # print(f"Object ID: {obj_id}")
-
     category = id2cat.get(obj_id, "object")
-    # print(f"Category Name: {category}")
-    # if the category is not found print the folder name
+
     if category == "object":
         print(
             f"Warning: Category for {obj_id} not found in {img_dir.parent.name}, using 'object'."
@@ -80,15 +80,19 @@ def process_one(img_dir, id2cat, cache_dir):
     views = choose_four_views(img_dir.glob("*.jpg"))
 
     # Generate captions with Google Gemini Flash 2.0 from captioner.py
-    _, joint_caption = caption_four_views(
-        view_paths=views,  # Corrected argument name
-        category_name=category,
-        obj_id=obj_id,
-        folder_id=img_dir.parent.name,
-    )
+
+    # _, single_caption = caption_four_views(
+    #     view_paths=views,  # Corrected argument name
+    #     category_name=category,
+    #     obj_id=obj_id,
+    #     folder_id=img_dir.parent.name,
+    # )
 
     # Create composite image and composite prompt
-    composite = make_composite(views, target_h=TARGET_HEIGHT)
+    composite = make_composite_grid(views, target_h=TARGET_HEIGHT)
+
+    # Generate caption for the composite image 2x2 grid
+    joint_caption = generate_caption_composite_grid(composite, category)
 
     # Save composite image and caption with the folder name as prefix
     composite_file = cache_dir / f"{category}_{obj_id}_{img_dir.parent.name}.png"
@@ -107,7 +111,7 @@ def main():
 
     for img_dir in tqdm(all_dirs, desc="Processing objects"):
         try:
-            process_one(img_dir, id2cat, cache_dir=OUT_DIR)
+            process_one(img_dir, id2cat, cache_dir=OUT_DIR_GRID)
         except Exception as e:
             print(f"Failed on {img_dir}: {e}")
             traceback.print_exc()
