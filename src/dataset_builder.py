@@ -3,16 +3,18 @@ from pathlib import Path
 from PIL import Image
 from tqdm import tqdm
 import traceback
+import pprint
+import sys
 from .captioner import caption_four_views, make_composite
 
 
 # --- directory layout ---
 DATA_ROOT = Path("data")
-OBJECTS_DIR = DATA_ROOT / "mvi_40"  # change to mvi_40 if needed
+OBJECTS_DIR = DATA_ROOT / "mvi_32"  # change to mvi_40 if needed
 OUT_DIR = Path("training/composites_4view")
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-CATEGORY_FILE = Path(DATA_ROOT / "mvimgnet_categories.txt")
+CATEGORY_FILE = Path(DATA_ROOT / "mvimgnet_category.txt")
 
 # --- processing params ---
 N_OBJECTS = 63  # MVP size
@@ -57,21 +59,40 @@ def process_one(img_dir, id2cat, cache_dir):
     """
     Process one object directory to create composite image and caption.
     """
-    obj_id = img_dir.parent.name
-    category = id2cat.get(obj_id, "object")
 
+    # pprint.pprint(id2cat)
+    obj_id = str(img_dir.parent.parent.name)
+    # print(f"Processing object ID: directory {img_dir}")
+    # print(f"Image directory: {img_dir.parent.name}")
+    # print(f"Object ID: {obj_id}")
+
+    category = id2cat.get(obj_id, "object")
+    # print(f"Category Name: {category}")
+    # if the category is not found print the folder name
+    if category == "object":
+        print(
+            f"Warning: Category for {obj_id} not found in {img_dir.parent.name}, using 'object'."
+        )
+
+    # replace trailing spaces from category name with "-"
+    category = category.strip().replace(" ", "-")
     # Select four views
     views = choose_four_views(img_dir.glob("*.jpg"))
 
     # Generate captions with Google Gemini Flash 2.0 from captioner.py
-    _, joint_caption = caption_four_views(views, category)
+    _, joint_caption = caption_four_views(
+        view_paths=views,  # Corrected argument name
+        category_name=category,
+        obj_id=obj_id,
+        folder_id=img_dir.parent.name,
+    )
 
     # Create composite image and composite prompt
     composite = make_composite(views, target_h=TARGET_HEIGHT)
 
     # Save composite image and caption with the folder name as prefix
-    composite_file = cache_dir / f"{category}_{obj_id}.png"
-    caption_file = cache_dir / f"{category}_{obj_id}.txt"
+    composite_file = cache_dir / f"{category}_{obj_id}_{img_dir.parent.name}.png"
+    caption_file = cache_dir / f"{category}_{obj_id}_{img_dir.parent.name}.txt"
 
     composite.save(composite_file)
     caption_file.write_text(joint_caption, encoding="utf-8")

@@ -5,7 +5,7 @@ from PIL import Image
 import os
 
 # grab FIRST object
-first_dir = find_image_dirs(OBJECTS_DIR)[1]
+first_dir = find_image_dirs(OBJECTS_DIR)[0]
 obj_id = first_dir.parent.name
 # Infer category from folder name using mvimgnet_category.txt
 CATEGORY_TAGS = "mvimgnet_category.txt"
@@ -22,7 +22,10 @@ else:
 
 views = choose_four_views(first_dir.glob("*.jpg"))
 
-clauses, joint_caption = caption_four_views(views, category)
+# Updated call to caption_four_views to include missing arguments
+clauses, joint_caption = caption_four_views(
+    views, category, obj_id=obj_id, folder_id=first_dir.parent.name
+)
 print("Generated clauses:", clauses)
 print("\nJoint caption:\n", joint_caption)
 
