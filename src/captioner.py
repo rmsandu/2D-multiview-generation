@@ -79,12 +79,10 @@ def generate_caption_composite_grid(composite_img_pil, category):
     """
     prompt = (
         f"You are an expert data annotator for 3D computer vision."
-        f'Your task is to generate a precise, single-line "joint caption" for a 2x2 grid of images showing different views of the same object.'
-        f"The image I am providing is a 2x2 grid image that represents a different camera angle of the same object. "
-        f"All four views show the same object, which belongs to the category: {category}."
-        f"Your task is to analyze the camera angle of each of the four images in the grid and create a single, continuous line of text that describes the object and the specific viewpoint in each grid position."
+        f'Your task is to generate a single-line "joint caption" for a 2x2 grid of images showing different views of the same object which belongs to the category: {category}.'
+        f"Your task is to analyze the camera angle of each of the four views in the grid and create a single, continuous line of text that describes the object in details and the specific viewpoint in each grid position."
         f"You must follow the strict formatting rules for the caption: [FOUR-VIEWS]  This set of four images show SHORT DESCRIPTION of object {category} in the photo; [TOP-LEFT], [TOP-RIGHT], [BOTTOM-LEFT], and [BOTTOM-RIGHT]"
-        f"EXAMPLE ANSWER: [FOUR-VIEWS] This set of four images image shows different viewing angles of the same blue bag wtih a flower pattern; [TOP-LEFT] This photo shows a 45-degree angle shot of a blue bag; [TOP-RIGHT] This photo shows high-angle view shot of a blue bag; [BOTTOM-LEFT] This photo shows another side view shot of a blue bag with a dragon on it; [BOTTOM-RIGHT] This photo shows the back view of a blue bag with two straps."
+        f"EXAMPLE ANSWER: [FOUR-VIEWS] This set of four images image shows different viewing angles of the same blue bag with a flower pattern; [TOP-LEFT] This photo shows a 45-degree angle shot of a blue bag; [TOP-RIGHT] This photo shows high-angle view shot of a blue bag; [BOTTOM-LEFT] This photo shows another side view shot of a blue bag with a dragon on it; [BOTTOM-RIGHT] This photo shows the back view of a blue bag with two straps."
     )
 
     resp = client.models.generate_content(
@@ -94,8 +92,11 @@ def generate_caption_composite_grid(composite_img_pil, category):
             temperature=0.3,  # low temperature for consistency
         ),
     )
-    # print(resp.text)
-    return resp.text.strip().rstrip(".")  # remove trailing period if any
+    return (
+        resp.text.strip() + "."
+        if not resp.text.strip().endswith(".")
+        else resp.text.strip()
+    )  # make sure it ends with a period
 
 
 if __name__ == "__main__":

@@ -13,7 +13,7 @@ from .composite_img import make_composite_grid
 
 # --- directory layout ---
 DATA_ROOT = Path("data")
-OBJECTS_DIR = DATA_ROOT / "mvi_32"  # change to mvi_40 if needed
+OBJECTS_DIR = DATA_ROOT / "mvi_40"  # change to mvi_40 if needed
 OUT_DIR = Path("training/composites_4view")
 OUT_DIR_GRID = Path("training/composites_4view_grid")
 OUT_DIR.mkdir(parents=True, exist_ok=True)
