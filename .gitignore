@@ -67,7 +67,6 @@ models/
 *.mov
 *.png
 *.jpg
-*.jpeg
 *.webm
 training/
 
