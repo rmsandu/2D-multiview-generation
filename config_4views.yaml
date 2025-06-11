@@ -2,13 +2,13 @@
 job: extension
 config:
   # this name will be the folder and filename name
-  name: "movie-shots"
+  name: "4views"
   process:
     - type: 'sd_trainer'
       # root folder to save training sessions/samples/weights
       training_folder: "output"
       # uncomment to see performance stats in the terminal every N steps
-      performance_log_every: 5000
+      performance_log_every: 100
       device: cuda:0
       # if a trigger word is specified, it will be added to captions of training data if it does not already exist
       # alternatively, in your captions you can add [trigger] and it will be replaced with the trigger word
@@ -31,16 +31,21 @@ config:
         # images will automatically be resized and bucketed into the resolution specified
         # on windows, escape back slashes with another backslash so
         # "C:\\path\\to\\images\\folder"
-        - folder_path: "data/movie-shots"
+        - folder_path: "data/composites_4view_grid"
           caption_ext: "txt"
           caption_dropout_rate: 0.05  # will drop out the caption 5% of time
           shuffle_tokens: false  # shuffle caption order, split by commas
           cache_latents_to_disk: true  # leave this true unless you know what you're doing
-          resolution: [ 512, 768, 1024, 1280, 1536 ]  # flux enjoys multiple resolutions
+          resolution: [ 512, 768, 1024 ]  # flux enjoys multiple resolutions
+      logging:
+        use_wandb: true  # set to true to log to wandb
+        project_name: "incontext-lora"  # project name for wandb
+        run_name: ""  # run name for wandb
       train:
-        batch_size: 4
-        steps: 5000  # total number of steps to train 500 - 4000 is a good range
-        gradient_accumulation_steps: 1
+        batch_size: 4 # batch size per gpu, flux is very memory intensive so this is usually 1
+        # if you have multiple GPUs, this is the total batch size
+        steps: 500  # total number of steps to train 500 - 4000 is a good range
+        gradient_accumulation_steps: 4
         train_unet: true
         train_text_encoder: false  # probably won't work with flux
         gradient_checkpointing: true  # need the on unless you have a ton of vram
@@ -69,14 +74,15 @@ config:
 #        low_vram: true  # uncomment this if the GPU is connected to your monitors. It will use less vram to quantize, but is slower.
       sample:
         sampler: "flowmatch" # must match train.noise_scheduler
-        sample_every: 250 # sample every this many steps
+        sample_every: 32 # sample every this many steps
         width: 1024
-        height: 1536
+        height: 1024
         prompts:
           # you can add [trigger] to the prompts here and it will be replaced with the trigger word
 #          - "[trigger] holding a sign that says 'I LOVE PROMPTS!'"\
-          - "[MOVIE-SHOTS] In this adventurous three-part sequence, [SCENE-1] <Ethan>, an intrepid archaeologist with a rugged appearance, uncovers an ancient map in a sunlit desert dig site, his excitement palpable as he brushes away the sand, [SCENE-2] transitioning to a bustling marketplace in a vibrant foreign city where <Ethan> negotiates with local merchants and gathers essential supplies for his quest, [SCENE-3] and finally, <Ethan> treks through a dense, mist-covered jungle, the towering trees and exotic wildlife emphasizing the challenges and mysteries that lie ahead on his journey."
-          - "[MOVIE-SHOTS] In a vibrant festival, [SCENE-1] we find <Leo>, a shy boy, standing at the edge of a bustling carnival, eyes wide with awe at the colorful rides and laughter, [SCENE-2] transitioning to him reluctantly trying a daring game, his friends cheering him on, [SCENE-3] culminating in a triumphant moment as he wins a giant stuffed bear, his face beaming with pride as he holds it up for all to see."
+          - "[trigger] `[FOUR-VIEWS]`"
+          - "[FOUR-VIEWS] This set of four images show different angles of a light blue bag with a dragon pattern and gold chains; [TOP-LEFT] This photo shows a side view of the bag leaning against a wall; [TOP-RIGHT] This photo shows another side view of the bag; [BOTTOM-LEFT] This photo shows a front view of the bag; [BOTTOM-RIGHT] This photo shows a back view of the bag."  
+          - "[FOUR-VIEWS] This set of four images show a black tote canvas bag with a funny cow design; [TOP-LEFT] This photo shows a side view of the tote bag; [TOP-RIGHT] This photo shows a high-angle view of the tote bag; [BOTTOM-LEFT] This photo shows a front view of the tote bag; [BOTTOM-RIGHT] This photo shows another side view of the tote bag."
         neg: ""  # not used on flux
         seed: 42
         walk_seed: true
@@ -84,5 +90,5 @@ config:
         sample_steps: 20
 # you can add any additional meta info here. [name] is replaced with config name at top
 meta:
-  name: "movie-shots"
+  name: "4views"
   version: '1.0'

@@ -88,7 +88,7 @@ def generate_caption_composite_grid(composite_img_pil, category):
     resp = client.models.generate_content(
         model=MODEL_NAME,
         contents=[composite_img_pil, prompt],
-        config=types.GenerateContentConfig(
+
             temperature=0.3,  # low temperature for consistency
         ),
     )
