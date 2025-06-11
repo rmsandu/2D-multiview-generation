@@ -9,7 +9,7 @@ Collect or curate a small set of multi-view image groups. Each group should cont
 
 # 2.Automatic Caption Generation for Multi-Image Scenes
 
-`captioner.py` is a script that generates captions for multi-image sets.
+`python -m src.captioner.py` is a script that generates captions for multi-image sets.
 
 For each image set, we need a single descriptive caption that encompasses all views/images. Writing these by hand is possible but to ensure scalability and consistency, we can automate caption generation using multimodal models:
 
@@ -17,20 +17,20 @@ I used Gemini 2.0 Flash to generate captions for each image set. After testing a
 
 Example composite single composite image:
 
-![Composite Image Example](https://raw.githubusercontent.com/ostris/multi-image-generation/main/images/composite_example.png)
+![Composite Image Example](https://raw.githubusercontent.com/ostris/multi-image-generation/main/images/composite_example.jpeg)
 
-Example caption for a composite image: 
-```[FOUR-VIEWS] This set of four images show different angles of a light blue bag with a hexagonal pattern; [TOP-LEFT] This photo shows a side view of the bag leaning against a wall; [TOP-RIGHT] This photo shows another side view of the bag; [BOTTOM-LEFT] This photo shows a front view of the bag; [BOTTOM-RIGHT] This photo shows a back view of the bag.
+**Example caption for a composite image:**
+``` 
+[FOUR-VIEWS] This set of four images show different angles of a light blue bag with a hexagonal pattern; [TOP-LEFT] This photo shows a side view of the bag leaning against a wall; [TOP-RIGHT] This photo shows another side view of the bag; [BOTTOM-LEFT] This photo shows a front view of the bag; [BOTTOM-RIGHT] This photo shows a back view of the bag.
 ```
 
-Example (two-view caption): “[TWO-VIEWS] This set of two images presents a scene from two different viewpoints. [IMAGE1] The first image shows a living room with a sofa, side tables, a television, houseplants, wall decor, and a rug. [IMAGE2] The second image shows the same room from another angle, revealing additional details from the other side.”
-
-Use the same markers in all your captions (e.g. always [IMAGE1], [IMAGE2], etc., or positional tags like [LEFT], [RIGHT] for two-image pairs
-, [TOP], [BOTTOM] for two-image vertical pairs, etc. This consistency helps the model learn the structure of multi-image prompts. ). These tokens don’t carry inherent meaning, but during training the model will learn to associate them with positioning of sub-images. The captions should read like a single narrative or list of observations rather than disconnected sentences.
+Example (two-view caption): “[TWO-VIEWS] This set of two images presents a scene from two different viewpoints. [IMAGE1] The first image shows a living room with a sofa, side tables, a television, houseplants, wall decor, and a rug. [IMAGE2] The second image shows the same room from another angle, revealing additional details from the other side.” This consistency helps the model learn the structure of multi-image prompts. The position tokens don’t carry inherent meaning, but during training the model will learn to associate them with positioning of sub-images. The captions should read like a single narrative or list of observations rather than disconnected sentences.
 
 # 3. Preprocessing: Composite Images and Merged Prompts
  `python -m src.dataset_builder` is a script that processes the multi-image sets and captions to create the training data for the model and saves each composite image as a file and put the caption text in a .txt file with the same name.
-    - Example data structure: *train_data/scene01.jpg – and a file train_data/scene01.txt containing the caption.*
+
+Example data structure: *train_data/scene01.jpg... train_data/scene01.txt.*
+
 
 Turn each multi-image set into the paired training data for the model.
 - **Concatenate Images**: Concatenate the images in each set into a single larger image. For example, for two images, you can place them side by side or one above the other, for four images, a 2×2 grid is convenient otherwise one long line of concatenated images might take too much memory. Ensure the composite image has a consistent size and aspect ratio across your dataset. The idea is to mimic how the model will output multiple images in one go. Arrange images in a consistent order and orientation (the order should match the order in your caption). Add minimal spacing or dividing lines if needed (but typically just concatenating directly is fine so the model sees one continuous image).
