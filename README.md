@@ -17,7 +17,7 @@ I used Gemini 2.0 Flash to generate captions for each image set. After testing a
 
 Example composite single composite image:
 
-![Composite Image Example](https://raw.githubusercontent.com/ostris/multi-image-generation/main/images/composite_example.jpeg)
+![Composite Image Example](composite_example.jpeg)
 
 **Example caption for a composite image:**
 ``` 
